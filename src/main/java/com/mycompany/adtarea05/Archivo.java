@@ -64,5 +64,5 @@ public class Archivo {
         long idDir=rep.getIdDir(directorioEnDB);
         this.idDir=idDir;
     }
-        
+     
 }

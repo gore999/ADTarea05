@@ -53,7 +53,7 @@ public class Repositorio {
 
     }
 
-    public static Repositorio getInstance(ConexionJson cj) {
+    public static synchronized Repositorio getInstance(ConexionJson cj) {
         if (rep == null) {
             rep = new Repositorio(cj);
         }
@@ -131,14 +131,14 @@ public class Repositorio {
 
 /// Adaptacion de directiros
     //Convierte un directorio al formato que se pide en el ejercicio (empleando . como directorio raiz)
-    public String adaptarNombreAFormatoDB(String raiz, String real) {
+    public static String adaptarNombreAFormatoDB(String raiz, String real) {
         String salida = ".";
         salida += real.substring(raiz.length());
         return salida;
     }
 
 //Cambia el . por el directorio raiz del json.
-    public String adaptarDBAPathReal(String raiz, String pathAlmacenado) {
+    public static String adaptarDBAPathReal(String raiz, String pathAlmacenado) {
         //Quitar el punto
         String salida = pathAlmacenado.substring(1);
         salida = raiz + salida;
