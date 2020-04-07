@@ -60,11 +60,9 @@ public class Archivo {
     //Añade la id del directorio a partir del File, hay que pasarle el repositorio para que haga la consulta.
     void setIdDir(File file, Repositorio rep) {
         String raiz=rep.getCj().getApp().getDirectory();
-        String directorioEnDB=null;
-        directorioEnDB=rep.adaptarNombreAFormatoDB(raiz, file.getParent());
+        String directorioEnDB=rep.adaptarNombreAFormatoDB(raiz, file.getParent());
         long idDir=rep.getIdDir(directorioEnDB);
-        System.out.println("Direndb"+directorioEnDB);
-        //directorioEnDB=directorioEnDB.substring(0, );
+        this.idDir=idDir;
     }
         
 }

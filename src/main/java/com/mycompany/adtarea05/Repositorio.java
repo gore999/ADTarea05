@@ -8,6 +8,7 @@ package com.mycompany.adtarea05;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -73,42 +74,25 @@ public class Repositorio {
         return salida;
     }
 
-    public void showDirectorios() {
-        String sql = "Select * from directorios";
-        try {
-            Statement stm = con.createStatement();
-            ResultSet rs = stm.executeQuery(sql);
-            while (rs.next()) {
-                System.out.println(rs.getString("nombre"));
-            }
-        } catch (SQLException ex) {
-            Logger.getLogger(Repositorio.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-    }
-
     public void saveDir(Directorio dir) {
         String raiz = cj.getApp().getDirectory();
         String nombreReal = dir.getNombre();
         String nombreAdaptado = adaptarNombreAFormatoDB(raiz, nombreReal);
-        System.out.println("id recuperada" + getIdDir(nombreAdaptado));
         try {
 
             if (getIdDir(nombreAdaptado) == -1) {//Si no existe el directorio, lo guardamos. El directorio no existe si el metodo de recuperar id devuelve -1
                 String sqlInsert = "Insert into directorios(nombre) values (?)";
                 PreparedStatement pst = con.prepareStatement(sqlInsert);
                 pst = con.prepareStatement(sqlInsert, Statement.RETURN_GENERATED_KEYS);
-                System.out.println(nombreAdaptado);
                 pst.setString(1, nombreAdaptado);
                 pst.execute();
                 //Obtener las keys e insertarlas en 
                 ResultSet rsk = pst.getGeneratedKeys();
                 rsk.next();
                 int key = rsk.getInt(1);
-                dir.setId(key);
-                System.out.println("Key: " + dir.getId());
+                dir.setId(key);//Añadimos la id de directorio
             } else {
-                System.out.println("Ya existe");
+                System.out.print(dir.getNombre()+"Ya existe");
             }
         } catch (SQLException ex) {
             Logger.getLogger(Repositorio.class.getName()).log(Level.SEVERE, null, ex);
@@ -121,6 +105,7 @@ public class Repositorio {
             FileInputStream fis=new FileInputStream(file);
             String sqlArchivo="INSERT INTO archivos(nombre, id_dir, binario) VALUES (?,?,?)";
             PreparedStatement pst=con.prepareStatement(sqlArchivo);
+            System.out.println("Datos del archivo 110: "+ar.getNombre()+"--"+ar.getIdDir());
             pst.setString(1, ar.getNombre());
             pst.setLong(2, ar.getIdDir());
             pst.setBinaryStream(3, fis);
@@ -182,17 +167,15 @@ public class Repositorio {
     //Devuelve un boleano que indica si un File existe o no. 
     boolean existeArchivo(Archivo archivo) {
         boolean salida = false; //presuponemos que no existe
-
-        if (archivo.getIdDir() != -1) {//Si el directorio existe: Creamos directorio y reponemos archivo.
+        if (archivo.getIdDir() != -1) {//Si el archivo existe: Creamos directorio y reponemos archivo.
             String sqlArchivo = "SELECT count(*) FROM archivos where  nombre=? AND id_dir=?";
             try {
                 PreparedStatement pst = con.prepareStatement(sqlArchivo);
                 pst.setString(1, archivo.getNombre());
                 pst.setLong(2, archivo.getIdDir());
                 ResultSet rs = pst.executeQuery();
-                while (rs.next()) {//Si existe algun archivo con igual id de directorio , se cambia salida a true.
-                    salida = true;
-                }
+                rs.next();
+                if(rs.getInt(1)==1)salida=true;// Si hay algun resultado, cambiamos a true, si no, se queda en false.
             } catch (SQLException ex) {
                 Logger.getLogger(Repositorio.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -230,7 +213,6 @@ public class Repositorio {
         String sql = "Select * from directorios where nombre=?";
         try {
             PreparedStatement pst = con.prepareStatement(sql);
-            System.out.println("Directorio en DB" + directorioEnDB);
             pst.setString(1, directorioEnDB);
             ResultSet rs = pst.executeQuery();
             while (rs.next()) {
@@ -244,4 +226,52 @@ public class Repositorio {
         return id;
     }
 
+    void recuperaDirectoriosYArchivos() {
+        String sql="SELECT id,nombre FROM directorios";
+        String sqlArchivos="Select * FROM archivos WHERE id_dir=?";
+        try {
+            Statement st=con.createStatement();
+            ResultSet rs=st.executeQuery(sql);
+            while(rs.next()){//Leer cada directorio. 
+                String dir=rs.getString("nombre");
+                long id=rs.getLong("id");
+                dir= this.adaptarDBAPathReal(cj.getApp().getDirectory(), dir);// Adaptar el nombre almacenado a nombre de path real
+                System.out.println("EL dir a recuoerar es:"+dir);
+                File f= new File(dir); //Creamos un objeto file para comprobar si el directorio existe. 
+                if(!f.exists()){//Si no existe, lo creamos (con mkdirs, por si hay que crear tambien los directorios padre.
+                    System.out.println(f.getCanonicalPath());
+                    System.out.println(f.mkdirs());
+                   
+                }else{
+                    System.out.println("el directorio "+dir+" existe");
+                }
+                //Recuperar los archivos del directorio.
+                PreparedStatement pst=con.prepareStatement(sqlArchivos);
+                pst.setLong(1,id);//Seleccionamos todos los archivos que tengan como id de directorio en BD la del directorio que estámos analizando.
+                ResultSet rsArch=pst.executeQuery();
+                while(rsArch.next()){
+                    String rutaArchivo=dir+"\\"+rsArch.getString("nombre");
+                    File f2=new File(rutaArchivo);
+                    //System.out.print("Path: "+f2.getPath());
+                    if(!f2.exists()){//Si el archivo no existe en el sistema, creamos el fichero.
+                        System.out.println("f2"+f2.getParent());
+                        f2.createNewFile();
+                        FileOutputStream fos=new FileOutputStream(f2);
+                        fos.write(rsArch.getBytes("binario"));//Escritura
+                        fos.close();
+                    }else{
+                       // System.out.println("El archivo ya existe zzzzzz");
+                    }
+                    
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(Repositorio.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(Repositorio.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Repositorio.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
 }

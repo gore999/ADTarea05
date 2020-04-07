@@ -27,24 +27,28 @@ public class ADTarea05 {
         ArrayList<Directorio> directorios=new ArrayList(); // ArrayList de los directorios que se han leido
         ArrayList<Archivo> archivos=new ArrayList();
         ConexionJson cj=conexionFromJson();//Lectura del json con metodo estatico al efecto.
-                        System.out.println("Dir-----------------------"+cj.getApp().getDirectory());
         cj.getApp().setDirectory(cj.getApp().getDirectory().replaceAll("/", "\\")); // Convertimos el separador usado en el json el en separador para sistemas windows.
         //Obtener un repositorio, objeto destinado a tratar con datos.
         Repositorio rep=Repositorio.getInstance(cj);
         
         //PASO 2: Primero leemos los directorios e insertarlos en base de datos. 
         File f=new File(cj.getApp().getDirectory()); // Creamos el primer directorio, el raiz, desde el que leemos todos los datos. 
-        //Metodo recursivo para leer los datos.
+//RECUPERAR DE DB Y RESTAURAR LO QUE NO EXISTA
+rep.recuperaDirectoriosYArchivos();
+
+
+
+//LECTURA DESDE DISCO Y GRABADO EN DB
+//Metodo recursivo para leer los datos.
         leerDirectorios(rep,f,directorios);
         //metodo leer los archivos.
         //Se le pasa el array de directorios y el repositorio para gestionar datos.
         System.out.println("Mis directorios--------------------------------------------");
         leerArchivos(rep,f,archivos);
-        
         //rep.showDirectorios();
         System.out.println("Filas: "+rep.contaFilasDir());// BORRAR--- Comprobar que puede leer 
         for(Archivo a:archivos){
-            System.out.println(a.getNombre()+ "Directorio nº: "+a.getIdDir());
+            //System.out.println(a.getNombre()+ "Directorio nº: "+a.getIdDir());
         }
     }   
     /*
@@ -117,5 +121,6 @@ public class ADTarea05 {
         }
         
     }
+   
 
 }
