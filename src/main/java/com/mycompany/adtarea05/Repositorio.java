@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -50,10 +51,11 @@ public class Repositorio {
         } catch (SQLException ex) {
             Logger.getLogger(Repositorio.class.getName()).log(Level.SEVERE, null, ex);
         }
-
+        //Crear funcion y trigger:
+        crearFuncionYTrigger();
     }
 
-    public static synchronized Repositorio getInstance(ConexionJson cj) {
+    public static Repositorio getInstance(ConexionJson cj) {
         if (rep == null) {
             rep = new Repositorio(cj);
         }
@@ -272,6 +274,32 @@ public class Repositorio {
         } catch (IOException ex) {
             Logger.getLogger(Repositorio.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    private void crearFuncionYTrigger() {
+        String sqlFunction="CREATE OR REPLACE FUNCTION notificar_archivo() "+
+                "RETURNS trigger AS $$ "
+                + "BEGIN "
+                + " PERFORM pg_notify('nuevoarchivo',NEW.id::text); "
+                + "RETURN NEW; "
+                + "END; "
+                + "$$ LANGUAGE plpgsql;";
+         String sqlTrigger=" DROP TRIGGER IF EXISTS not_nuevo_arch ON archivos;"
+                 + "CREATE TRIGGER not_nuevo_arch "
+                 + "AFTER INSERT ON archivos "
+                 + "FOR EACH ROW "
+                 + "EXECUTE PROCEDURE notificar_archivo();";       
+        try {
+            CallableStatement callFun=con.prepareCall(sqlFunction);
+            callFun.execute();
+            callFun.close();
+            CallableStatement callTrig=con.prepareCall(sqlTrigger);
+            callTrig.execute();
+            callTrig.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(Repositorio.class.getName()).log(Level.SEVERE, null, ex);
+        }
+         
     }
     
 }

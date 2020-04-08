@@ -45,7 +45,9 @@ public class ADTarea05 {
         leerArchivos(rep, f);
         //Thread que comprueba y graba archivos cada X tiempo.
         Thread threadSaver=new Thread(new ComprobadorFiles(cj,5000)); //cada 5 segundos se comprueban los files.
+        Thread threadLectorNotif=new Thread(new LectorNotificaciones(cj,5000));
         threadSaver.start();
+        threadLectorNotif.start();
         System.out.println("Filas: " + rep.contaFilasDir());// BORRAR--- Comprobar que puede leer 
 
     }
