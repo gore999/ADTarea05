@@ -14,7 +14,7 @@ import java.io.File;
 
 /*
 * Esta clase representa los datos recogidos del json de configuracion.
-* Contiene dos instancias de sendas clases privadas internas: DbConnection y App 
+* Contiene dos instancias de sendas clases  internas: DbConnection y App 
  */
 public class ConexionJson {
 

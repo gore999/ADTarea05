@@ -10,6 +10,7 @@ import java.io.File;
 /**
  *
  * @author Carlos
+ * Clase que representa a un directorio de sistema, tal y como se representaría en BD.
  */
 class Directorio {
     private long id;

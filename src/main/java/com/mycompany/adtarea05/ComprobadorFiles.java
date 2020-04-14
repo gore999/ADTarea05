@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 /**
  *
  * @author Carlos
+ * Hereda de runnable. Puede ejecutarse como un thread independiente.
  */
 public class ComprobadorFiles implements Runnable {
     static long contador=0L;
@@ -35,8 +36,9 @@ public class ComprobadorFiles implements Runnable {
     }
 
     public ComprobadorFiles(ConexionJson cj, int milis) {
-        this.cj = cj;
-        this.milis=milis;
+        this.cj = cj;//Datos de la conexion
+        this.milis=milis;//Tiempo entre ciclos de ejecucion del Thread.
+        //Datos para crear la conexion a partir del json.
         String address = cj.getDb().getAddress();
         String dbName = cj.getDb().getName();
         String user = cj.getDb().getUser();
@@ -52,7 +54,21 @@ public class ComprobadorFiles implements Runnable {
             Logger.getLogger(Repositorio.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+        @Override
+    public void run() {
+        File f = new File(cj.getApp().getDirectory());// 
+        while (true) {
+            System.out.println("comprobacion nº"+contador++);
+              leerDirectorios(f);
+              this.leerArchivos(f);
+            try {//Dormimos el hilo la cantidad de milisegundos que hayamos establecido.
+                Thread.sleep(milis);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(ComprobadorFiles.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    // Adaptacion de los metodos del repositorio para esta clase.
     private void leerDirectorios(File file) {//Reibe repositorio, File del raiz del json, arraylist directorios.
 
         if (file.isDirectory()) {//Si es un directorio
@@ -208,18 +224,6 @@ public class ComprobadorFiles implements Runnable {
             Logger.getLogger(Repositorio.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    @Override
-    public void run() {
-        File f = new File(cj.getApp().getDirectory());// 
-        while (true) {
-            System.out.println("comprobacion nº"+contador++);
-              leerDirectorios(f);
-              this.leerArchivos(f);
-            try {//Dormimos el hilo la cantidad de milisegundos que hayamos establecido.
-                Thread.sleep(milis);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(ComprobadorFiles.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
+ // Metodo que se ejecuta al crear el Thread.
+
 }

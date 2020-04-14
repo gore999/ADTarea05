@@ -51,8 +51,7 @@ public class Repositorio {
         } catch (SQLException ex) {
             Logger.getLogger(Repositorio.class.getName()).log(Level.SEVERE, null, ex);
         }
-        //Crear funcion y trigger:
-        crearFuncionYTrigger();
+        
     }
 
     public static Repositorio getInstance(ConexionJson cj) {
@@ -100,7 +99,7 @@ public class Repositorio {
             Logger.getLogger(Repositorio.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+    // Guarda un archivo a partir de un objeto archivo y un objeto file.
     public void saveArchivo(Archivo ar, File file) {
         try {
             //Comprobar si existe directorio.
@@ -146,7 +145,7 @@ public class Repositorio {
         salida = raiz + salida;
         return salida;
     }
-//Devuelve un String con el path completo (ya adaptado) del directorio a partir de su id. 
+//Devuelve un String con el path completo (ya adaptado al sistema de archivos Windows) del directorio a partir de su id. 
 
     String getDirectorio(long id) {
         String sql = "SELECT nombre FROM directorios WHERE id=?";
@@ -186,7 +185,7 @@ public class Repositorio {
     }
 
     /*
-    Comprueba si existe un directorio. Devuelve boolean 
+    Comprueba si existe un directorio. Devuelve boolean segun exista o no.
      */
     boolean existeDir(String directorioEnDB) {
         boolean existe = false;
@@ -208,7 +207,7 @@ public class Repositorio {
         }
         return existe;
     }
-
+    // Obtiene la id de un directorio a partir de una ruta (en formato recogido en BD.
     long getIdDir(String directorioEnDB) {
         long id = -1;
         String cc = "";
@@ -264,7 +263,6 @@ public class Repositorio {
                     }else{
                        // System.out.println("El archivo ya existe zzzzzz");
                     }
-                    
                 }
             }
         } catch (SQLException ex) {
@@ -276,7 +274,7 @@ public class Repositorio {
         }
     }
 
-    private void crearFuncionYTrigger() {
+    public void crearFuncionYTrigger() {
         String sqlFunction="CREATE OR REPLACE FUNCTION notificar_archivo() "+
                 "RETURNS trigger AS $$ "
                 + "BEGIN "

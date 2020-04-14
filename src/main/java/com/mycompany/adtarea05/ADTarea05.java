@@ -34,21 +34,20 @@ public class ADTarea05 {
         //PASO 2: Primero leemos los directorios e insertarlos en base de datos. 
         File f = new File(cj.getApp().getDirectory()); // Creamos el primer directorio, el raiz, desde el que leemos todos los datos. 
         //RECUPERAR DE DB Y RESTAURAR LO QUE NO EXISTA
-        rep.recuperaDirectoriosYArchivos();
+        //Crear funcion y trigger:
+        rep.crearFuncionYTrigger();// Creamos la funcion y el trigger.
+        rep.recuperaDirectoriosYArchivos(); //Recuperamos los archivos y directorios
 
     //LECTURA DESDE DISCO Y GRABADO EN DB
-    //Metodo recursivo para leer los datos.
-        leerDirectorios(rep, f);
-        //metodo leer los archivos.
-        //Se le pasa el array de directorios y el repositorio para gestionar datos.
-        System.out.println("Mis directorios--------------------------------------------");
-        leerArchivos(rep, f);
-        //Thread que comprueba y graba archivos cada X tiempo.
+        leerDirectorios(rep, f);//Metodo recursivo para leer los directorios.
+        leerArchivos(rep, f);//metodo recursivo para leer los archivos.
+        //Thread que comprueba y graba archivos cada 5000 milisegundos.
         Thread threadSaver=new Thread(new ComprobadorFiles(cj,5000)); //cada 5 segundos se comprueban los files.
+        //Thread que comprueba notificaciones cada 5000 milisegundos
         Thread threadLectorNotif=new Thread(new LectorNotificaciones(cj,5000));
+        //Iniciar los threads
         threadSaver.start();
         threadLectorNotif.start();
-        System.out.println("Filas: " + rep.contaFilasDir());// BORRAR--- Comprobar que puede leer 
 
     }
 
@@ -61,10 +60,10 @@ public class ADTarea05 {
         ConexionJson cj = null;
         try {
             Gson g = new Gson();
-            File f = new File("conexion.json");
+            File f = new File("conexion.json");//File que representa al json
             json = new FileReader(f);
-            cj = g.fromJson(json, ConexionJson.class);
-            File f2 = new File(cj.getApp().getDirectory());
+            cj = g.fromJson(json, ConexionJson.class);//Crear el objeto a partir de datos json.
+            File f2 = new File(cj.getApp().getDirectory());//Crear iun
             cj.getApp().setDirectory(f2.getCanonicalPath());
             System.out.println("Directorio" + cj.getApp().getDirectory());
 
@@ -81,7 +80,7 @@ public class ADTarea05 {
         }
         return cj;
     }
-
+    //Lee y graba de forma recursiva los directorios bajo el file que se le pasa como parametro. 
     private static void leerDirectorios(Repositorio rep, File file) {//Reibe repositorio, File del raiz del json, arraylist directorios.
         if (file.isDirectory()) {//Si es un directorio
             //OBJETO
@@ -104,7 +103,7 @@ public class ADTarea05 {
             }
         }
     }
-
+ //Lee y graba de forma recursiva todos los archivos bajo el file que recibe.
     private static void leerArchivos(Repositorio rep, File file) {
         if (file.isDirectory()) {//Si es un directorio, aplicamos Recursivamente este mismo metodo a todo su contenido.
             File[] innerFiles = file.listFiles();// Obtener un array de File con los Files dentro del directorio

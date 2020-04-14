@@ -45,10 +45,11 @@ public class LectorNotificaciones implements Runnable {
         Properties props = new Properties();
         props.setProperty("user", user);
         props.setProperty("password", pass);
+        //Creacion de la conexion.
         String conectarStr = "jdbc:postgresql://" + address + "/" + dbName;
         try {
             con = DriverManager.getConnection(conectarStr, props);
-            //Suscripcion al canal
+            //Suscripcion al canal-------------------------------------------------------------
             pgconn = con.unwrap(PGConnection.class);
             Statement stmt = con.createStatement();
             stmt.execute("LISTEN nuevoarchivo");
@@ -56,25 +57,24 @@ public class LectorNotificaciones implements Runnable {
         } catch (SQLException ex) {
             Logger.getLogger(Repositorio.class.getName()).log(Level.SEVERE, null, ex);
         }
-
     }
-
+//Metodo run: Se ejecuta al instanciarlo como Thread y ejecutar start.
     @Override
     public void run() {
         while (true) {
             System.out.println("Comprobando notificaciones");
-            try {
+            try {//Leemos las notificaciones.
                 String sql="Select * from archivos where id=?";
-                PGNotification notificaciones[] = pgconn.getNotifications();
-                if(notificaciones!=null){
+                PGNotification notificaciones[] = pgconn.getNotifications(); //Recuperar el array de notificaciones desde pgconn.
+                if(notificaciones!=null){//Si hay notificaciones, se ejecuta el siguiente codigo.
                     for(PGNotification not:notificaciones){
+                        //Variables para almacenar un archivo
                         String nombre;
                         int id_dir;
                         byte[] datos;
-                        
                         PreparedStatement pst=con.prepareStatement(sql);
-                        int id=Integer.parseInt(not.getParameter());
-                        System.out.println("Notificado"+id);
+                        int id=Integer.parseInt(not.getParameter());// Obtener el id que se almacena en la notificacion
+                        System.out.println("Notificado"+id);//Aviso en consola de que hay notificacion.
                         pst.setInt(1, id);
                         ResultSet rs=pst.executeQuery();
                         while(rs.next()){

@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 /**
  *
  * @author Carlos
+ * Clase que representa aun archivo del sistema, como se representaría en BD.
  */
 public class Archivo {
     private long idDir;
